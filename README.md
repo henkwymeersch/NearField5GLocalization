@@ -1,4 +1,4 @@
-# Near Field 5G Localization
+# Near-Field 5G Localization
 This code computes position error bounds for near-field localization with a linear array. The code also comprises a spectral method for sub-array joint localization and synchronization.
 
 
@@ -20,7 +20,7 @@ c = 0.3;                        % speed of light [m/ns]
 lambda = c/fc;                  % carrier wavelength [m]                
 Delta = lambda/2;               % antenna spacing in [m]
 W = 0.1;                        % bandwidth [GHz]
-Pt = 1;                           % transmit power [mW]
+Pt = 1;                         % transmit power [mW]
 N0 = 290*1e3*1.381e-23*1e9;     % noise PSD in mW/GHz (290 Kelvin * Boltzmann constant in W/Hz)
 B = 20;                         % user clock bias [m]
 xUE = [1 8];                    % user location [m,m]
