@@ -8,6 +8,7 @@ The GeneratePEB.m is used to compute the position error bound (PEB) for a scenar
 * the near-field, narrowband model
 * the far-field wideband model
 * the general model, applicable to far-field and near-field, wideband and narrowband. The PEB for the case where the clock bias is known or is unknown are visualized. 
+
 The matlab code JointLocSync.m generates an OFDM signal and determines the observation matrix at the array (of size number of subcarriers x number of antenna elements). Then the matrix is processed to recover the transmitter's location and clock bias. The code evaluates the performance for different locations of the user. 
 
 ## Main parameters
