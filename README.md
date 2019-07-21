@@ -31,12 +31,12 @@ xUE = [1 8];                    % user location [m,m]
 The code was developed by 
 * **[Henk Wymeersch](https://sites.google.com/site/hwymeers/)**
 
-For more information, please see **[here](https://arxiv.org/abs/??.??)**
+For more information, please see **[here](https://arxiv.org/abs/1907.07411)**
 ```
 @article{Wym2019,
   title={Near-Field Joint Localization and Synchronization},
   author={Wymeersch, Henk},
-  journal={arXiv preprint arXiv:??.??},
+  journal={arXiv preprint arXiv:1907.07411},
   year={2019}
 }
 ```
