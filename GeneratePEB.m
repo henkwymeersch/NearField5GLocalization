@@ -7,7 +7,7 @@ clc
 
 
 freeparam='Delta';              % can be W, Delta, distance, N, K, 
-K = 1024;                       % number of subcarriers - 1
+K = 256;                       % number of subcarriers - 1
 N = 128;                        % number of antennas -1
 fc = 28;                        % carrier [GHz]
 c = 0.3;                        % speed of light [m/ns]
@@ -27,7 +27,7 @@ switch (freeparam)
         Wvec=logspace(-4,0,steps);
         xaxisvec=Wvec;
     case 'Delta'
-        Deltavec=lambda*(logspace(-1,2,steps));        
+        Deltavec=lambda*(logspace(-0.5,2,steps));        
         xaxisvec=Deltavec/lambda;        
     case 'N'
         Nvec=2.^(floor(linspace(1,13,steps)));       
@@ -115,7 +115,7 @@ end
 yl=ylabel('PEB [m]');
 set(xl,'Interpreter','latex','FontSize',12);
 set(yl,'Interpreter','latex','FontSize',12);
-l=legend('standard model, $B$ known','near-field narrowband, $B$ known', 'far-field wideband, $B$ known','general model, $B$ known','near-field narrowband, $B$ unknown', 'far-field wideband, $B$ unknown','general model, $B$ unknown');
-set(l,'Interpreter','latex','FontSize',12,'Location','NorthWest');
+%l=legend('standard model, $B$ known','near-field narrowband, $B$ known','far-field wideband, $B$ known','general model, $B$ known','near-field narrowband, $B$ unknown', 'far-field wideband, $B$ unknown','general model, $B$ unknown');
+%set(l,'Interpreter','latex','FontSize',12,'Location','NorthWest');
 pbaspect([2 1 1])
 set(gcf, 'Color', 'w');

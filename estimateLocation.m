@@ -1,4 +1,4 @@
-function [x_hat,B_hat]=estimateLocation(Y,lambda,Delta,W,c,useSubArray,dbar)
+function [x_hat,B_hat]=estimateLocation(Y,lambda,Delta,W,c,useSubArray,dbar,bias,xUE,visualize)
     % Near-Field Joint Localization and Synchronization Beyond 5G
     % (c) Henk Wymeersch, 2019
     % Usage: this code computes an estimate of the user location and clock
@@ -12,6 +12,9 @@ function [x_hat,B_hat]=estimateLocation(Y,lambda,Delta,W,c,useSubArray,dbar)
     % c = speed of light m/ns
     % useSubarray = 0 / 1, if we want to use the sub-array approach
     % dbar = a reference distance
+    % bias = true value of the bias, used when useSubarray=0
+    % xUE = true value of the UE location, used for visualization
+    % visualize = 0 / 1 to visualize some results
         K=size(Y,1)-1;
         N=size(Y,2)-1;
         maxRange=(K+1)/W*c;        
@@ -22,13 +25,13 @@ function [x_hat,B_hat]=estimateLocation(Y,lambda,Delta,W,c,useSubArray,dbar)
         %                            in narrowband
         Ntilde=min(N+1,min(ceil(sqrt(max(dbar,1)*lambda/(2*Delta^2))),ceil(10*c/(W*Delta))));                             
         if (~useSubArray)        
-            Ntilde=N;        
+            Ntilde=N+1;        
         end                
         if (Ntilde<8) % this means large Delta, so we only rely on measurements across frequency
             RangeEstimate=zeros(1,N+1);
             for n=-N/2:N/2
                 ni=n+N/2+1;
-                Kfft=K*10;
+                Kfft=K+1;
                 Yn=[Y(:,ni); zeros(Kfft-K-1,1)];        % pad with zeros for higher resolution 
                 [~,index]=max(abs(ifft(Yn)));           % find peak
                 loc(ni,:)=[ni*Delta-N/2*Delta 0];
@@ -49,15 +52,23 @@ function [x_hat,B_hat]=estimateLocation(Y,lambda,Delta,W,c,useSubArray,dbar)
             if Ntest==1
                 Ntilde=N+1;
             end            
-            for n=1:Ntest
+            for n=1:Ntest                
                 starti=(n-1)*Ntilde+1; % first antenna of sub-array
                 endi=n*Ntilde;         % last antenna of sub-array
                 loc(n,:)=[(starti+Ntilde/2)*Delta-N/2*Delta 0]; % approximate array center of sub-array
-                Nfft=10*N;             % let's use a large FFT in spatial domain
-                Kfft=K;                                 
-                Yn=Y(:,starti:endi);    % grab the observation at subarray
-                Yn=[Yn zeros(K+1,Nfft-Ntilde); zeros(Kfft-K-1,Nfft)];   % pad with zeros to do larger FFT
+                Nfft=N+1;                 % let's use a large FFT in spatial domain
+                Kfft=K+1;                                 
+                Yn=Y(:,starti:endi);    % grab the observation at subarray                
+                Yn=[Yn zeros(K+1,Nfft-Ntilde); zeros(Kfft-K-1,Nfft)];   % pad with zeros to do larger FFT                
                 tmp=abs(ifft2(Yn));        
+                if (visualize)
+                    figure(1)
+                    mesh(1:Nfft,1:Kfft,tmp)
+                    xlabel('spatial index')
+                    ylabel('frequency index')
+                    title(['# of antennas used = ' num2str(Ntilde)]);
+                    pause(0.1)
+                end
                 mv=max(tmp(:));                
                 [Ri,Ai]=find(tmp==mv);
                 RangeEstimate(n)=mod((Ri-1)*rangeRes*(K+1)/(Kfft),maxRange);                
@@ -74,27 +85,44 @@ function [x_hat,B_hat]=estimateLocation(Y,lambda,Delta,W,c,useSubArray,dbar)
                 AOAestimate(n)=-acos(SF)+pi;                
             end
             
-            if (Ntest==1)
-                % this is the standard model. We cannot estimate clock bias
-                x_hat=[RangeEstimate*cos(AOAestimate) RangeEstimate*sin(AOAestimate)];
-                B_hat=[];
-            else
-                % we only use AOA for position and then the ranges for
-                % synchronization. This method can be further developed. 
-                counter=0;
-                for k1=1:Ntest-1
-                    for k2=k1+1:Ntest                        
-                        counter=counter+1;
-                        % compute the bearing lines and their intersection                        
-                        x_hattmp(counter,:)=intersectLines(loc(k1,:),loc(k2,:),AOAestimate(k1),AOAestimate(k2));                        
-                    end
+            if (or(Ntest==1,var(AOAestimate)==0))                
+                if (useSubArray)
+                    % we don't have enough information to provide the UE
+                    % location
+                    x_hat=[];
+                    B_hat=[];                    
+                else
+                    % the standard approach
+                    RangeEstimate=RangeEstimate+bias;
+                    x_hat=[RangeEstimate*cos(AOAestimate) RangeEstimate*sin(AOAestimate)];
+                    B_hat=[];                    
                 end
-                x_hat=mean(x_hattmp);   % the average of all the intersections of bearing lines
+                
+            else
+               % we only use AOA for position and then the ranges for
+               % synchronization. This method can be further developed.   
+               
+               %x_hat=intersectLines(loc(1,:),loc(end,:),AOAestimate(1),AOAestimate(end)); 
+                if (mod(Ntest,2)==0)                   
+                    x_hat=intersectLines(loc(Ntest/2,:),loc(Ntest/2+1,:),AOAestimate(Ntest/2),AOAestimate(Ntest/2+1));                
+                else
+                    x_hat=intersectLines(loc(floor(Ntest/2),:),loc(floor(Ntest/2)+1,:),AOAestimate(floor(Ntest/2)),AOAestimate(floor(Ntest/2)+1));                
+                end
+                if (visualize) 
+                    close all
+                    figure(2);
+                    for k1=1:Ntest
+                        line([loc(k1,1) loc(k1,1)+ 4*dbar*cos(AOAestimate(k1)) ], [0 4*dbar*sin(AOAestimate(k1)) ])
+                        hold on                    
+                    end
+                    plot(xUE(1),xUE(2),'r*')
+                    plot(x_hat(1),x_hat(2),'b*')
+                    hold off
+                    pause(1)
+                end                
                 for k1=1:Ntest
                    b_hat(k1)=norm(x_hat-loc(k1,:))-RangeEstimate(k1);   % sub-array estimate of the clock bias
                 end                
                 B_hat=mean(b_hat);      % average of the estimates of the clock biases. 
             end
-            
-        end
-        
+        end       
