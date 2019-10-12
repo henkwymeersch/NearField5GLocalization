@@ -115,7 +115,7 @@ end
 yl=ylabel('PEB [m]');
 set(xl,'Interpreter','latex','FontSize',12);
 set(yl,'Interpreter','latex','FontSize',12);
-%l=legend('standard model, $B$ known','near-field narrowband, $B$ known','far-field wideband, $B$ known','general model, $B$ known','near-field narrowband, $B$ unknown', 'far-field wideband, $B$ unknown','general model, $B$ unknown');
-%set(l,'Interpreter','latex','FontSize',12,'Location','NorthWest');
+l=legend('standard model, $B$ known','near-field narrowband, $B$ known','far-field wideband, $B$ known','general model, $B$ known','near-field narrowband, $B$ unknown', 'far-field wideband, $B$ unknown','general model, $B$ unknown');
+set(l,'Interpreter','latex','FontSize',12,'Location','NorthWest');
 pbaspect([2 1 1])
 set(gcf, 'Color', 'w');
